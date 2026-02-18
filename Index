@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cricket Auction App</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+    body { background: #0a2540; color: white; overflow: hidden; }
+    .hidden { display: none !important; }
+    h1 { color: #ff6b35; text-align: center; margin: 20px 0; }
+    input, button { padding: 12px; margin: 5px; border: none; border-radius: 8px; font-size: 16px; }
+    button { background: #ff6b35; color: white; cursor: pointer; }
+    button:hover { background: #e55a2b; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #333; }
+    th { background: #1a3c5e; }
+    img { width: 120px; height: 160px; object-fit: cover; border-radius: 8px; }
+    .player-card { text-align: center; font-size: 24px; }
+    .player-card img { width: 300px; height: 400px; }
+    .player-info { margin: 20px 0; }
+    .current-player { background: #ff6b35; padding: 20px; border-radius: 12px; margin: 20px; }
+    .admin-panel { max-width: 800px; margin: 0 auto; }
+    .form-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .form-row input { flex: 1; min-width: 150px; }
+    #password-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    #password-modal.hidden { display: none; }
+  </style>
+</head>
+<body>
+  <!-- Admin Password Modal -->
+  <div id="password-modal">
+    <div style="background: #1a3c5e; padding: 40px; border-radius: 12px; text-align: center;">
+      <h2>Admin Password</h2>
+      <input type="password" id="admin-pass" placeholder="Enter password">
+      <br><button onclick="checkAdmin()">Enter</button>
+    </div>
+  </div>
+
+  <!-- Admin Screen -->
+  <div id="admin-screen" class="hidden">
+    <h1>🏏 Cricket Auction Admin</h1>
+    <div class="admin-panel">
+      <div class="form-row">
+        <input id="serial" type="number" placeholder="Serial No">
+        <button onclick="loadPlayer()">Load Player</button>
+        <button onclick="nextPlayer()">Next Unsold</button>
+        <button onclick="clearCurrent()">Clear Current</button>
+      </div>
+      <div style="margin: 20px 0;">
+        <h3>Add/Edit Player</h3>
+        <div class="form-row">
+          <input id="name" placeholder="Name">
+          <input id="role" placeholder="Role (BAT/BOWL/AR)">
+          <input id="base-price" type="number" placeholder="Base Price">
+        </div>
+        <div class="form-row">
+          <input id="photo-url" placeholder="Photo URL (e.g., https://example.com/img.jpg)">
+          <button onclick="savePlayer()">Save Player</button>
+          <button onclick="deletePlayer()">Delete Current</button>
+        </div>
+      </div>
+      <table id="player-table">
+        <thead><tr><th>ID</th><th>Name</th><th>Role</th><th>Base</th><th>Photo</th><th>Sold</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Auctioneer Screen -->
+  <div id="auctioneer-screen">
+    <h1>Auctioneer Control</h1>
+    <div id="current-display" class="current-player" style="display:none;">
+      <h2 id="curr-name"></h2>
+      <img id="curr-photo" src="" alt="Player Photo">
+      <p id="curr-role"></p>
+      <p id="curr-base">Base: ₹0</p>
+      <button onclick="nextPlayer()" style="font-size:20px;">Next Player</button>
+      <button onclick="soldPlayer()" style="background:#4caf50;">Mark Sold</button>
+    </div>
+    <p style="text-align:center; font-size:18px;">Current Serial: <span id="curr-serial">0</span></p>
+  </div>
+
+  <!-- Display Screen -->
+  <div id="display-screen" class="hidden player-card">
+    <h1 id="display-name"></h1>
+    <img id="display-photo" src="" alt="Player">
+    <div class="player-info">
+      <p id="display-role" style="font-size:28px;"></p>
+      <p id="display-base" style="font-size:32px;">Base Price: ₹0</p>
+    </div>
+  </div>
+
+  <script>
+    const ADMIN_PASS = 'admin123'; // Change this
+    let players = JSON.parse(localStorage.getItem('players')) || [];
+    let currentSerial = parseInt(localStorage.getItem('currentSerial')) || 0;
+    let isAdmin = false;
+
+    function init() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const screen = urlParams.get('screen') || 'auctioneer';
+      document.querySelectorAll('[id$="-screen"]').forEach(s => s.classList.add('hidden'));
+      document.getElementById(screen + '-screen')?.classList.remove('hidden');
+      if (screen === 'admin') showPasswordModal();
+      else if (screen === 'display') updateDisplay();
+      loadPlayersTable();
+      updateCurrent();
+    }
+
+    function showPasswordModal() {
+      document.getElementById('password-modal').classList.remove('hidden');
+    }
+
+    function checkAdmin() {
+      const pass = document.getElementById('admin-pass').value;
+      if (pass === ADMIN_PASS) {
+        isAdmin = true;
+        document.getElementById('password-modal').classList.add('hidden');
+        document.getElementById('admin-screen').classList.remove('hidden');
+        loadPlayersTable();
+      } else alert('Wrong password');
+    }
+
+    function savePlayers() {
+      localStorage.setItem('players', JSON.stringify(players));
+    }
+
+    function loadPlayer() {
+      const serial = parseInt(document.getElementById('serial').value) - 1;
+      if (serial >= 0 && serial < players.length) {
+        currentSerial = serial;
+        localStorage.setItem('currentSerial', currentSerial);
+        updateCurrent();
+      }
+    }
+
+    function nextPlayer() {
+      // Find next unsold
+      let nextIdx = (currentSerial + 1) % players.length;
+      while (nextIdx !== currentSerial && players[nextIdx]?.sold) {
+        nextIdx = (nextIdx + 1) % players.length;
+      }
+      currentSerial = nextIdx;
+      localStorage.setItem('currentSerial', currentSerial);
+      updateCurrent();
+    }
+
+    function clearCurrent() {
+      currentSerial = -1;
+      localStorage.setItem('currentSerial', currentSerial);
+      updateCurrent();
+    }
+
+    function updateCurrent() {
+      document.getElementById('curr-serial').textContent = currentSerial + 1;
+      if (currentSerial >= 0 && currentSerial < players.length) {
+        const p = players[currentSerial];
+        document.getElementById('curr-name').textContent = p.name;
+        document.getElementById('curr-photo').src = p.photo;
+        document.getElementById('curr-role').textContent = p.role;
+        document.getElementById('curr-base').textContent = `Base: ₹${p.basePrice}`;
+        document.getElementById('current-display').style.display = 'block';
+        updateDisplay();
+      } else {
+        document.getElementById('current-display').style.display = 'none';
+        clearDisplay();
+      }
+    }
+
+    function updateDisplay() {
+      if (currentSerial >= 0 && currentSerial < players.length) {
+        const p = players[currentSerial];
+        document.getElementById('display-name').textContent = p.name;
+        document.getElementById('display-photo').src = p.photo;
+        document.getElementById('display-role').textContent = p.role;
+        document.getElementById('display-base').textContent = `Base Price: ₹${p.basePrice}`;
+      }
+    }
+
+    function clearDisplay() {
+      document.getElementById('display-name').textContent = '';
+      document.getElementById('display-photo').src = '';
+      document.getElementById('display-role').textContent = '';
+      document.getElementById('display-base').textContent = '';
+    }
+
+    function soldPlayer() {
+      if (currentSerial >= 0 && currentSerial < players.length) {
+        players[currentSerial].sold = true;
+        savePlayers();
+        loadPlayersTable();
+        nextPlayer();
+      }
+    }
+
+    function getCurrentPlayer() {
+      const nameEl = document.getElementById('name');
+      const roleEl = document.getElementById('role');
+      const baseEl = document.getElementById('base-price');
+      const photoEl = document.getElementById('photo-url');
+      return {
+        id: currentSerial + 1,
+        name: nameEl.value || '',
+        role: roleEl.value || '',
+        basePrice: parseInt(baseEl.value) || 0,
+        photo: photoEl.value || '',
+        sold: false
+      };
+    }
+
+    function savePlayer() {
+      const p = getCurrentPlayer();
+      if (p.name && currentSerial >= 0 && currentSerial < players.length) {
+        players[currentSerial] = p;
+      } else {
+        p.id = players.length + 1;
+        players.push(p);
+        currentSerial = players.length - 1;
+      }
+      savePlayers();
+      loadPlayersTable();
+      updateCurrent();
+      // Clear form
+      document.getElementById('name').value = '';
+      // etc.
+    }
+
+    function deletePlayer() {
+      if (currentSerial >= 0 && currentSerial < players.length) {
+        players.splice(currentSerial, 1);
+        savePlayers();
+        loadPlayersTable();
+        updateCurrent();
+      }
+    }
+
+    function loadPlayersTable() {
+      const tbody = document.querySelector('#player-table tbody');
+      tbody.innerHTML = '';
+      players.forEach((p, i) => {
+        const row = tbody.insertRow();
+        row.innerHTML = `<td>${p.id}</td><td>${p.name}</td><td>${p.role}</td><td>₹${p.basePrice}</td><td><img src="${p.photo}" style="width:50px;height:60px;object-fit:cover;"></td><td>${p.sold ? 'Yes' : 'No'}</td>`;
+        row.onclick = () => { currentSerial = i; document.getElementById('serial').value = i+1; updateCurrent(); };
+      });
+    }
+
+    // Sample players - add real ones in admin
+    if (players.length === 0) {
+      players = [
+        {id:1, name:'Rohit Sharma', role:'BAT', basePrice:100, photo:'https://via.placeholder.com/300x400/ff6b35/ffffff?text=ROHIT', sold:false},
+        {id:2, name:'Jasprit Bumrah', role:'BOWL', basePrice:150, photo:'https://via.placeholder.com/300x400/4caf50/ffffff?text=BUMRAH', sold:false}
+      ];
+      savePlayers();
+    }
+
+    init();
+    setInterval(updateDisplay, 1000); // Sync display
+  </script>
+</body>
+</html>
