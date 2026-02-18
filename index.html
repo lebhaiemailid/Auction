@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🏏 Cricket Auction - Serial Only</title>
+  <title>🏏 Cricket Auction App</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
     body { background: linear-gradient(135deg, #0a2540, #1a3c5e); color: white; min-height: 100vh; }
@@ -22,17 +22,22 @@
     .screen-link.display { background: #2196f3; font-size: 1.5em; }
     .instructions { background: rgba(255,255,255,0.1); padding: 30px; border-radius: 12px; margin: 20px 0; }
     .hidden { display: none !important; }
+    
+    /* Screen-specific styles */
     input { padding: 20px; margin: 10px; border: none; border-radius: 12px; font-size: 24px; width: 200px; text-align: center; }
     button { padding: 20px 40px; margin: 10px; border: none; border-radius: 12px; font-size: 20px; background: #ff6b35; color: white; cursor: pointer; }
     button:hover { background: #e55a2b; }
-    button.sold { background: #4caf50; }
-    button.sold:hover { background: #45a049; }
-    .player-card { text-align: center; font-size: 28px; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #000; }
-    .player-card img { width: 350px; height: 450px; border-radius: 20px; box-shadow: 0 30px 60px rgba(255,107,53,0.5); margin: 20px 0; }
-    .player-info { margin: 30px 0; }
-    .player-info p { font-size: 2.5em; margin: 10px 0; }
-    .serial-input { font-size: 4em; background: #ff6b35; color: white; border-radius: 20px; padding: 30px; margin: 20px; width: 150px; }
+    
     .auctioneer-panel { max-width: 600px; margin: 100px auto; text-align: center; padding: 40px; background: rgba(255,255,255,0.1); border-radius: 20px; }
+    .serial-input { font-size: 4em; background: #ff6b35; color: white; border-radius: 20px; padding: 30px; margin: 20px; width: 150px; }
+    
+    .display-panel { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #000; text-align: center; font-size: 28px; }
+    .display-panel img { width: 350px; height: 450px; border-radius: 20px; box-shadow: 0 30px 60px rgba(255,107,53,0.5); margin: 20px 0; }
+    .display-name { color: #ff6b35; font-size: 4em; text-shadow: 3px 3px 6px rgba(0,0,0,0.8); margin-bottom: 20px; }
+    .display-role { font-size: 3em; color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); margin: 10px 0; }
+    .display-base { font-size: 4em; color: #ff6b35; font-weight: bold; text-shadow: 3px 3px 6px rgba(0,0,0,0.8); }
+    .display-serial { font-size: 2em; color: #fff; opacity: 0.8; margin-top: 20px; }
+    
     .admin-panel { max-width: 1000px; margin: 20px auto; padding: 20px; }
     .form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
     .form-row input { flex: 1; min-width: 150px; padding: 12px; }
@@ -40,93 +45,95 @@
     th, td { padding: 12px; text-align: left; border-bottom: 1px solid #333; }
     th { background: #1a3c5e; }
     td img { width: 60px; height: 70px; object-fit: cover; border-radius: 8px; }
-    #password-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-    #password-modal.hidden { display: none; }
+    
+    #password-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 1000; }
+    #password-modal.show { display: flex; }
     .back-link { display: inline-block; margin: 20px 0; padding: 15px 30px; background: #ff6b35; color: white; text-decoration: none; border-radius: 12px; }
     footer { margin-top: 40px; opacity: 0.7; font-size: 14px; text-align: center; }
   </style>
 </head>
 <body>
-  <!-- Dashboard -->
+  <!-- Dashboard (Default) -->
   <div id="dashboard" class="dashboard">
     <h1>🏏 Cricket Auction App</h1>
-    <p class="subtitle">PMP Winter League | Serial Number Control</p>
+    <p class="subtitle">PMP Winter League | 3 Separate Screens</p>
     
     <div class="screen-links">
-      <a href="?screen=auctioneer" class="screen-link" target="_blank">💻 AUCTIONEER<br>Enter Serial Only</a>
-      <a href="?screen=admin" class="screen-link admin" target="_blank">🔐 ADMIN PANEL<br>Edit Players</a>
-      <a href="?screen=display" class="screen-link display" target="_blank">📺 DISPLAY SCREEN<br>TV Fullscreen</a>
+      <a href="?screen=auctioneer" class="screen-link" target="_blank">💻 AUCTIONEER<br>Serial Number Entry</a>
+      <a href="?screen=admin" class="screen-link admin" target="_blank">🔐 ADMIN PANEL<br>Player Database</a>
+      <a href="?screen=display" class="screen-link display" target="_blank">📺 DISPLAY SCREEN<br>Big Screen View</a>
     </div>
     
     <div class="instructions">
-      <h3>🚀 Simple Serial Control</h3>
-      <p><strong>Auctioneer:</strong> Enter serial number → Display updates instantly</p>
-      <p><strong>Admin:</strong> Password: <code>admin123</code></p>
-      <p><strong>Demo:</strong> 8 players loaded! Serial 1-8</p>
+      <h3>🚀 How to Use</h3>
+      <p><strong>Auctioneer:</strong> Enter serial → Display updates instantly</p>
+      <p><strong>Admin:</strong> Password: <code>admin123</code> (only on admin URL)</p>
+      <p><strong>Display:</strong> Open & fullscreen (F11)</p>
+      <p><strong>Demo:</strong> 8 IPL players ready! Serial 1-8</p>
     </div>
-    <footer>Pune Turf Cricket | GitHub Pages</footer>
+    <footer>GitHub Pages | Pune Turf Cricket Auctions</footer>
   </div>
 
-  <!-- Password Modal -->
+  <!-- Admin Password Modal (ONLY for admin screen) -->
   <div id="password-modal">
     <div style="background: #1a3c5e; padding: 40px; border-radius: 20px; text-align: center; max-width: 400px;">
-      <h2>🔐 Admin Access</h2>
+      <h2>🔐 Admin Password</h2>
       <input type="password" id="admin-pass" placeholder="admin123" style="width: 250px; padding: 15px;">
-      <br><br><button onclick="checkAdmin()" style="padding: 15px 40px; font-size: 18px;">Enter Admin</button>
+      <br><br><button onclick="checkAdmin()" style="padding: 15px 40px; font-size: 18px;">Enter Admin →</button>
     </div>
   </div>
 
-  <!-- Admin Screen -->
+  <!-- ADMIN SCREEN (Only shows on ?screen=admin) -->
   <div id="admin-screen" class="hidden admin-panel">
-    <h1>🔐 Player Database</h1>
+    <h1>🔐 Player Database Admin</h1>
     <a href="./" class="back-link">← Dashboard</a>
     
-    <h3>Add/Edit Player</h3>
+    <h3>Add New Player</h3>
     <div class="form-row">
       <input id="name" placeholder="Player Name">
       <input id="role" placeholder="BAT/BOWL/AR/WK">
       <input id="base-price" type="number" placeholder="Base ₹">
     </div>
     <div class="form-row">
-      <input id="photo-url" placeholder="Photo URL">
+      <input id="photo-url" placeholder="Photo URL (Unsplash)">
       <button onclick="savePlayer()">💾 Save Player</button>
     </div>
     
-    <h3>All Players (Click to Edit)</h3>
+    <h3>All Players</h3>
     <table id="player-table">
       <thead><tr><th>ID</th><th>Name</th><th>Role</th><th>Base ₹</th><th>Photo</th><th>Sold</th></tr></thead>
       <tbody></tbody>
     </table>
   </div>
 
-  <!-- Auctioneer Screen - SERIAL ONLY -->
+  <!-- AUCTIONEER SCREEN (Only serial input - ?screen=auctioneer) -->
   <div id="auctioneer-screen" class="hidden auctioneer-panel">
     <h1>💻 Auctioneer Control</h1>
     <a href="./" class="back-link">← Dashboard</a>
     
-    <div style="margin: 50px 0;">
-      <label style="font-size: 2em; margin: 20px;">Enter Serial Number:</label><br>
+    <div style="margin: 80px 0;">
+      <label style="font-size: 2.5em; display: block; margin-bottom: 30px;">Enter Serial Number:</label>
       <input type="number" id="serial-input" class="serial-input" min="1" max="50" placeholder="1">
       <br>
-      <button onclick="setSerial()" style="font-size: 28px; padding: 25px 60px;">📺 SHOW PLAYER</button>
+      <button onclick="setSerial()" style="font-size: 28px; padding: 25px 60px; margin-top: 20px;">📺 SHOW ON DISPLAY</button>
     </div>
     
-    <div id="current-preview" style="background: #ff6b35; padding: 30px; border-radius: 20px; margin: 30px 0; display: none;">
-      <h3 style="color: #000;">Preview: Serial <span id="preview-serial">-</span></h3>
-      <p style="color: #000; font-size: 24px;" id="preview-name">-</p>
+    <div id="preview" style="background: rgba(255,107,53,0.2); padding: 20px; border-radius: 12px; margin: 30px 0; display: none;">
+      <h3 style="color: #fff;">Preview: Serial <span id="preview-id">-</span></h3>
+      <p style="font-size: 24px; color: #fff;" id="preview-name">-</p>
     </div>
     
-    <p style="font-size: 18px;">Current Display: Serial <span id="curr-serial-display">0</span></p>
+    <p style="font-size: 20px;">Current Display: Serial <span id="current-serial">0</span></p>
   </div>
 
-  <!-- Display Screen -->
-  <div id="display-screen" class="hidden player-card">
-    <h1 id="display-name" style="color: #ff6b35; font-size: 4em; text-shadow: 3px 3px 6px rgba(0,0,0,0.8);"></h1>
-    <img id="display-photo" alt="Player" style="max-width: 90vw; height: 50vh; object-fit: cover;">
+  <!-- DISPLAY SCREEN (Only shows player - ?screen=display) -->
+  <div id="display-screen" class="hidden display-panel">
+    <h1 id="display-name" class="display-name">PLAYER NAME</h1>
+    <img id="display-photo" alt="Player Photo">
     <div class="player-info">
-      <p id="display-role" style="font-size: 3em; color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);"></p>
-      <p id="display-base" style="font-size: 4em; color: #ff6b35; font-weight: bold; text-shadow: 3px 3px 6px rgba(0,0,0,0.8);">₹0</p>
-      <p id="display-serial" style="font-size: 2em; color: #fff; opacity: 0.8;">Serial #</p>
+      <p id="display-role" class="display-role">-</p>
+      <p id="display-base" class="display-base">₹0</p>
+      <p id="display-serial" class="display-serial">Serial #</p>
     </div>
   </div>
 
@@ -141,7 +148,7 @@
         players = [
           {id:1, name:'Rohit Sharma', role:'BAT', basePrice:200, photo:'https://images.unsplash.com/photo-1596964355499-78aa9f2a9f69?w=400&h=500&fit=crop', sold:false},
           {id:2, name:'Jasprit Bumrah', role:'BOWL', basePrice:250, photo:'https://images.unsplash.com/photo-1560264280-c92d3bc799a6?w=400&h=500&fit=crop', sold:false},
-          {id:3, name:'Virat Kohli', role:'BAT', role:'BAT', basePrice:180, photo:'https://images.unsplash.com/photo-1600392458896-629917170b67?w=400&h=500&fit=crop', sold:false},
+          {id:3, name:'Virat Kohli', role:'BAT', basePrice:180, photo:'https://images.unsplash.com/photo-1600392458896-629917170b67?w=400&h=500&fit=crop', sold:false},
           {id:4, name:'KL Rahul', role:'WK-BAT', basePrice:150, photo:'https://images.unsplash.com/photo-1611003229189-804ab0bd1a0f?w=400&h=500&fit=crop', sold:false},
           {id:5, name:'Hardik Pandya', role:'AR', basePrice:160, photo:'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=500&fit=crop', sold:false},
           {id:6, name:'Ravindra Jadeja', role:'AR', basePrice:140, photo:'https://images.unsplash.com/photo-1624494780664-5549ebcc7f17?w=400&h=500&fit=crop', sold:false},
@@ -161,59 +168,62 @@
       const urlParams = new URLSearchParams(window.location.search);
       const screen = urlParams.get('screen') || 'dashboard';
       
+      // Hide all screens
       document.querySelectorAll('[id$="-screen"], #dashboard').forEach(el => el.classList.add('hidden'));
-      const targetScreen = screen === 'dashboard' ? 'dashboard' : screen + '-screen';
-      document.getElementById(targetScreen)?.classList.remove('hidden');
       
-      if (screen === 'admin') showPasswordModal();
-      else if (screen !== 'dashboard') updateDisplay();
+      // Show correct screen
+      if (screen === 'dashboard') {
+        document.getElementById('dashboard').classList.remove('hidden');
+      } else {
+        document.getElementById(screen + '-screen').classList.remove('hidden');
+        
+        // ONLY show password modal for admin screen
+        if (screen === 'admin') {
+          document.getElementById('password-modal').classList.add('show');
+        }
+      }
       
+      updateDisplay();
       loadPlayersTable();
-      document.getElementById('serial-input').value = currentSerial >= 0 ? currentSerial + 1 : '';
-      updateSerialDisplay();
-    }
-
-    function showPasswordModal() {
-      document.getElementById('password-modal').classList.remove('hidden');
+      updateAuctioneer();
     }
 
     function checkAdmin() {
       if (document.getElementById('admin-pass').value === ADMIN_PASS) {
-        document.getElementById('password-modal').classList.add('hidden');
-        document.getElementById('admin-screen').classList.remove('hidden');
+        document.getElementById('password-modal').classList.remove('show');
       } else {
         alert('❌ Wrong Password!');
       }
     }
 
-    // AUCTIONEER SERIAL CONTROL
+    // AUCTIONEER: Serial number control
     function setSerial() {
       const serial = parseInt(document.getElementById('serial-input').value) - 1;
       if (serial >= 0 && serial < players.length && !players[serial].sold) {
         currentSerial = serial;
         localStorage.setItem('currentSerial', currentSerial);
         updateDisplay();
-        updatePreview();
-        updateSerialDisplay();
+        updateAuctioneer();
       } else {
-        alert('Invalid serial or player already sold!');
+        alert('Invalid serial or player sold!');
       }
     }
 
-    function updatePreview() {
+    function updateAuctioneer() {
+      document.getElementById('current-serial').textContent = currentSerial >= 0 ? currentSerial + 1 : 'None';
       if (currentSerial >= 0 && currentSerial < players.length) {
         const p = players[currentSerial];
-        document.getElementById('preview-serial').textContent = p.id;
+        document.getElementById('preview-id').textContent = p.id;
         document.getElementById('preview-name').textContent = p.name;
-        document.getElementById('current-preview').style.display = 'block';
+        document.getElementById('preview').style.display = 'block';
+      } else {
+        document.getElementById('preview').style.display = 'none';
       }
-    }
-
-    function updateSerialDisplay() {
-      document.getElementById('curr-serial-display').textContent = currentSerial >= 0 ? currentSerial + 1 : 'None';
     }
 
     function updateDisplay() {
+      currentSerial = parseInt(localStorage.getItem('currentSerial')) || -1;
+      
       if (currentSerial >= 0 && currentSerial < players.length) {
         const p = players[currentSerial];
         document.getElementById('display-name').textContent = p.name;
@@ -227,32 +237,31 @@
     }
 
     function clearDisplay() {
-      document.getElementById('display-name').textContent = '';
+      document.getElementById('display-name').textContent = 'NO PLAYER SELECTED';
       document.getElementById('display-photo').src = '';
-      document.getElementById('display-role').textContent = '';
-      document.getElementById('display-base').textContent = '';
+      document.getElementById('display-role').textContent = '-';
+      document.getElementById('display-base').textContent = '₹0';
       document.getElementById('display-serial').textContent = 'Serial #';
     }
 
     // Admin functions
-    function getFormData() {
-      return {
+    function savePlayer() {
+      const data = {
         name: document.getElementById('name').value,
         role: document.getElementById('role').value,
         basePrice: parseInt(document.getElementById('base-price').value) || 0,
         photo: document.getElementById('photo-url').value
       };
-    }
-
-    function savePlayer() {
-      const data = getFormData();
+      
       if (!data.name) return alert('Name required!');
       
       const newPlayer = { id: players.length + 1, sold: false, ...data };
       players.push(newPlayer);
       savePlayers();
       loadPlayersTable();
-      alert('Player saved!');
+      alert('✅ Player Added!');
+      
+      // Clear form
       document.getElementById('name').value = '';
       document.getElementById('role').value = '';
       document.getElementById('base-price').value = '';
@@ -261,6 +270,8 @@
 
     function loadPlayersTable() {
       const tbody = document.querySelector('#player-table tbody');
+      if (!tbody) return;
+      
       tbody.innerHTML = '';
       players.forEach((p, i) => {
         const row = tbody.insertRow();
@@ -282,16 +293,20 @@
       });
     }
 
-    // Enter on serial input
+    // Enter key support for auctioneer
     document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('serial-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') setSerial();
-      });
+      const serialInput = document.getElementById('serial-input');
+      if (serialInput) {
+        serialInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') setSerial();
+        });
+      }
     });
 
-    // Auto-sync display
+    // Auto-sync every 2 seconds
     setInterval(updateDisplay, 2000);
     
+    // Initialize
     init();
   </script>
 </body>
