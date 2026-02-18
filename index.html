@@ -67,7 +67,7 @@
     <div class="instructions">
       <h3>🚀 How to Use</h3>
       <p><strong>Auctioneer:</strong> Enter serial → Display updates instantly</p>
-      <p><strong>Admin:</strong> Password: <code>admin123</code> (only on admin URL)</p>
+      <p><strong>Admin:</strong> Add/edit players (password protected)</p>
       <p><strong>Display:</strong> Open & fullscreen (F11)</p>
       <p><strong>Demo:</strong> 8 IPL players ready! Serial 1-8</p>
     </div>
@@ -77,8 +77,8 @@
   <!-- Admin Password Modal (ONLY for admin screen) -->
   <div id="password-modal">
     <div style="background: #1a3c5e; padding: 40px; border-radius: 20px; text-align: center; max-width: 400px;">
-      <h2>🔐 Admin Password</h2>
-      <input type="password" id="admin-pass" placeholder="admin123" style="width: 250px; padding: 15px;">
+      <h2>🔐 Admin Access</h2>
+      <input type="password" id="admin-pass" placeholder="Enter password" style="width: 250px; padding: 15px;">
       <br><br><button onclick="checkAdmin()" style="padding: 15px 40px; font-size: 18px;">Enter Admin →</button>
     </div>
   </div>
@@ -95,7 +95,7 @@
       <input id="base-price" type="number" placeholder="Base ₹">
     </div>
     <div class="form-row">
-      <input id="photo-url" placeholder="Photo URL (Unsplash)">
+      <input id="photo-url" placeholder="Photo URL">
       <button onclick="savePlayer()">💾 Save Player</button>
     </div>
     
@@ -142,18 +142,18 @@
     let players = JSON.parse(localStorage.getItem('players')) || [];
     let currentSerial = parseInt(localStorage.getItem('currentSerial')) || -1;
 
-    // Initialize demo players
+    // FIXED: Working placeholder images
     function initPlayers() {
       if (players.length === 0) {
         players = [
-          {id:1, name:'Rohit Sharma', role:'BAT', basePrice:200, photo:'https://images.unsplash.com/photo-1596964355499-78aa9f2a9f69?w=400&h=500&fit=crop', sold:false},
-          {id:2, name:'Jasprit Bumrah', role:'BOWL', basePrice:250, photo:'https://images.unsplash.com/photo-1560264280-c92d3bc799a6?w=400&h=500&fit=crop', sold:false},
-          {id:3, name:'Virat Kohli', role:'BAT', basePrice:180, photo:'https://images.unsplash.com/photo-1600392458896-629917170b67?w=400&h=500&fit=crop', sold:false},
-          {id:4, name:'KL Rahul', role:'WK-BAT', basePrice:150, photo:'https://images.unsplash.com/photo-1611003229189-804ab0bd1a0f?w=400&h=500&fit=crop', sold:false},
-          {id:5, name:'Hardik Pandya', role:'AR', basePrice:160, photo:'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=500&fit=crop', sold:false},
-          {id:6, name:'Ravindra Jadeja', role:'AR', basePrice:140, photo:'https://images.unsplash.com/photo-1624494780664-5549ebcc7f17?w=400&h=500&fit=crop', sold:false},
-          {id:7, name:'Shubman Gill', role:'BAT', basePrice:120, photo:'https://images.unsplash.com/photo-1538312564584-9d86e1ce3e93?w=400&h=500&fit=crop', sold:false},
-          {id:8, name:'Yashasvi Jaiswal', role:'BAT', basePrice:110, photo:'https://images.unsplash.com/photo-1611251952518-79b95352c4ba?w=400&h=500&fit=crop', sold:false}
+          {id:1, name:'Rohit Sharma', role:'BAT', basePrice:200, photo:'https://via.placeholder.com/400x500/ff6b35/ffffff?text=Rohit', sold:false},
+          {id:2, name:'Jasprit Bumrah', role:'BOWL', basePrice:250, photo:'https://via.placeholder.com/400x500/4caf50/ffffff?text=Bumrah', sold:false},
+          {id:3, name:'Virat Kohli', role:'BAT', basePrice:180, photo:'https://via.placeholder.com/400x500/2196f3/ffffff?text=Virat', sold:false},
+          {id:4, name:'KL Rahul', role:'WK-BAT', basePrice:150, photo:'https://via.placeholder.com/400x500/9c27b0/ffffff?text=Rahul', sold:false},
+          {id:5, name:'Hardik Pandya', role:'AR', basePrice:160, photo:'https://via.placeholder.com/400x500/ff9800/ffffff?text=Hardik', sold:false},
+          {id:6, name:'Ravindra Jadeja', role:'AR', basePrice:140, photo:'https://via.placeholder.com/400x500/00bcd4/ffffff?text=Jadeja', sold:false},
+          {id:7, name:'Shubman Gill', role:'BAT', basePrice:120, photo:'https://via.placeholder.com/400x500/8bc34a/ffffff?text=Gill', sold:false},
+          {id:8, name:'Yashasvi Jaiswal', role:'BAT', basePrice:110, photo:'https://via.placeholder.com/400x500/f44336/ffffff?text=Yashasvi', sold:false}
         ];
         savePlayers();
       }
@@ -227,7 +227,7 @@
       if (currentSerial >= 0 && currentSerial < players.length) {
         const p = players[currentSerial];
         document.getElementById('display-name').textContent = p.name;
-        document.getElementById('display-photo').src = p.photo;
+        document.getElementById('display-photo').src = p.photo + '?t=' + Date.now();
         document.getElementById('display-role').textContent = p.role;
         document.getElementById('display-base').textContent = `₹${p.basePrice}L`;
         document.getElementById('display-serial').textContent = `Serial #${p.id}`;
@@ -250,7 +250,7 @@
         name: document.getElementById('name').value,
         role: document.getElementById('role').value,
         basePrice: parseInt(document.getElementById('base-price').value) || 0,
-        photo: document.getElementById('photo-url').value
+        photo: document.getElementById('photo-url').value || 'https://via.placeholder.com/400x500/cccccc/000000?text=No+Photo'
       };
       
       if (!data.name) return alert('Name required!');
@@ -280,7 +280,7 @@
           <td>${p.name}</td>
           <td>${p.role}</td>
           <td>₹${p.basePrice}</td>
-          <td><img src="${p.photo}" onerror="this.src='https://via.placeholder.com/60x70/ccc?text=?';"></td>
+          <td><img src="${p.photo}" onerror="this.src='https://via.placeholder.com/60x70/ccc/000?text=?';"></td>
           <td style="color:${p.sold ? '#4caf50' : '#ff6b35'}">${p.sold ? '✅ YES' : '⏳ NO'}</td>
         `;
         row.style.cursor = 'pointer';
