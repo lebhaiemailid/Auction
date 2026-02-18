@@ -309,5 +309,36 @@
     // Initialize
     init();
   </script>
+  <script>
+  const ADMIN_PASS = 'admin123';
+  let players = JSON.parse(localStorage.getItem('players')) || [];
+  let currentSerial = parseInt(localStorage.getItem('currentSerial')) || -1;
+
+  // ... [keep all existing functions exactly same until the end] ...
+
+  // ENHANCED: Instant sync + polling
+  function syncAllScreens() {
+    updateDisplay();
+    if (document.getElementById('auctioneer-screen') && !document.getElementById('auctioneer-screen').classList.contains('hidden')) {
+      updateAuctioneer();
+    }
+  }
+
+  // Enter key support for auctioneer
+  document.addEventListener('DOMContentLoaded', () => {
+    const serialInput = document.getElementById('serial-input');
+    if (serialInput) {
+      serialInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') setSerial();
+      });
+    }
+  });
+
+  // ULTRA-FAST SYNC: Every 500ms
+  setInterval(syncAllScreens, 500);
+  
+  // Initialize
+  init();
+  </script>
 </body>
 </html>
