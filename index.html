@@ -27,6 +27,8 @@
     input { padding: 20px; margin: 10px; border: none; border-radius: 12px; font-size: 24px; width: 200px; text-align: center; }
     button { padding: 20px 40px; margin: 10px; border: none; border-radius: 12px; font-size: 20px; background: #ff6b35; color: white; cursor: pointer; }
     button:hover { background: #e55a2b; }
+    button.sold-btn { background: #4caf50; }
+    button.sold-btn:hover { background: #45a049; }
     
     .auctioneer-panel { max-width: 600px; margin: 100px auto; text-align: center; padding: 40px; background: rgba(255,255,255,0.1); border-radius: 20px; }
     .serial-input { font-size: 4em; background: #ff6b35; color: white; border-radius: 20px; padding: 30px; margin: 20px; width: 150px; }
@@ -38,13 +40,15 @@
     .display-base { font-size: 4em; color: #ff6b35; font-weight: bold; text-shadow: 3px 3px 6px rgba(0,0,0,0.8); }
     .display-serial { font-size: 2em; color: #fff; opacity: 0.8; margin-top: 20px; }
     
-    .admin-panel { max-width: 1000px; margin: 20px auto; padding: 20px; }
+    .admin-panel { max-width: 1200px; margin: 20px auto; padding: 20px; }
     .form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
-    .form-row input { flex: 1; min-width: 150px; padding: 12px; }
+    .form-row input, .form-row select { flex: 1; min-width: 120px; padding: 12px; border-radius: 8px; border: none; }
     table { width: 100%; border-collapse: collapse; margin: 20px 0; }
     th, td { padding: 12px; text-align: left; border-bottom: 1px solid #333; }
     th { background: #1a3c5e; }
     td img { width: 60px; height: 70px; object-fit: cover; border-radius: 8px; }
+    .sold-row { background: #4caf50 !important; color: #000 !important; }
+    .team-select { background: #ff6b35; color: white; padding: 8px; border-radius: 6px; font-weight: bold; }
     
     #password-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 1000; }
     #password-modal.show { display: flex; }
@@ -56,25 +60,24 @@
   <!-- Dashboard (Default) -->
   <div id="dashboard" class="dashboard">
     <h1>🏏 Cricket Auction App</h1>
-    <p class="subtitle">PMP Winter League | 3 Separate Screens</p>
+    <p class="subtitle">PMP Winter League | Complete Auction System</p>
     
     <div class="screen-links">
       <a href="?screen=auctioneer" class="screen-link" target="_blank">💻 AUCTIONEER<br>Serial Number Entry</a>
-      <a href="?screen=admin" class="screen-link admin" target="_blank">🔐 ADMIN PANEL<br>Player Database</a>
-      <a href="?screen=display" class="screen-link display" target="_blank">📺 DISPLAY SCREEN<br>Big Screen View</a>
+      <a href="?screen=admin" class="screen-link admin" target="_blank">🔐 ADMIN PANEL<br>Full Control</a>
+      <a href="?screen=display" class="screen-link display" target="_blank">📺 DISPLAY SCREEN<br>Big Screen</a>
     </div>
     
     <div class="instructions">
-      <h3>🚀 How to Use</h3>
-      <p><strong>Auctioneer:</strong> Enter serial → Display updates instantly</p>
-      <p><strong>Admin:</strong> Add/edit players (password protected)</p>
-      <p><strong>Display:</strong> Open & fullscreen (F11)</p>
-      <p><strong>Demo:</strong> 8 IPL players ready! Serial 1-8</p>
+      <h3>🚀 3-PC Setup</h3>
+      <p><strong>Auctioneer PC:</strong> Enter serial → Live display</p>
+      <p><strong>Admin PC:</strong> Manage bids, teams, sold status</p>
+      <p><strong>Display PC:</strong> Fullscreen projector (F11)</p>
     </div>
     <footer>GitHub Pages | Pune Turf Cricket Auctions</footer>
   </div>
 
-  <!-- Admin Password Modal (ONLY for admin screen) -->
+  <!-- Admin Password Modal -->
   <div id="password-modal">
     <div style="background: #1a3c5e; padding: 40px; border-radius: 20px; text-align: center; max-width: 400px;">
       <h2>🔐 Admin Access</h2>
@@ -83,30 +86,36 @@
     </div>
   </div>
 
-  <!-- ADMIN SCREEN (Only shows on ?screen=admin) -->
+  <!-- ADMIN SCREEN - ENHANCED -->
   <div id="admin-screen" class="hidden admin-panel">
-    <h1>🔐 Player Database Admin</h1>
+    <h1>🔐 Complete Auction Control</h1>
     <a href="./" class="back-link">← Dashboard</a>
     
-    <h3>Add New Player</h3>
+    <h3>➕ Add New Player</h3>
     <div class="form-row">
       <input id="name" placeholder="Player Name">
       <input id="role" placeholder="BAT/BOWL/AR/WK">
       <input id="base-price" type="number" placeholder="Base ₹">
-    </div>
-    <div class="form-row">
+      <select id="team"><option value="">Select Team</option><option>Hanuman Hitters</option><option>Indra Arrows</option><option>Bhima Busters</option><option>Agni Aces</option><option>Shiva Strikers</option></select>
       <input id="photo-url" placeholder="Photo URL">
-      <button onclick="savePlayer()">💾 Save Player</button>
+      <button onclick="savePlayer()">💾 Add Player</button>
     </div>
     
-    <h3>All Players</h3>
+    <h3>📊 Auction Control</h3>
+    <div class="form-row">
+      <input id="sold-team" placeholder="Sold Team">
+      <input id="final-bid" type="number" placeholder="Final Bid ₹">
+      <button class="sold-btn" onclick="markSold()">✅ Mark Current SOLD</button>
+    </div>
+    
+    <h3>📋 All Players</h3>
     <table id="player-table">
-      <thead><tr><th>ID</th><th>Name</th><th>Role</th><th>Base ₹</th><th>Photo</th><th>Sold</th></tr></thead>
+      <thead><tr><th>ID</th><th>Name</th><th>Role</th><th>Base</th><th>Final Bid</th><th>Team</th><th>Photo</th><th>Status</th><th>Action</th></tr></thead>
       <tbody></tbody>
     </table>
   </div>
 
-  <!-- AUCTIONEER SCREEN (Only serial input - ?screen=auctioneer) -->
+  <!-- AUCTIONEER SCREEN -->
   <div id="auctioneer-screen" class="hidden auctioneer-panel">
     <h1>💻 Auctioneer Control</h1>
     <a href="./" class="back-link">← Dashboard</a>
@@ -126,7 +135,7 @@
     <p style="font-size: 20px;">Current Display: Serial <span id="current-serial">0</span></p>
   </div>
 
-  <!-- DISPLAY SCREEN (Only shows player - ?screen=display) -->
+  <!-- DISPLAY SCREEN -->
   <div id="display-screen" class="hidden display-panel">
     <h1 id="display-name" class="display-name">PLAYER NAME</h1>
     <img id="display-photo" alt="Player Photo">
@@ -142,18 +151,17 @@
     let players = JSON.parse(localStorage.getItem('players')) || [];
     let currentSerial = parseInt(localStorage.getItem('currentSerial')) || -1;
 
-    // FIXED: Working placeholder images
     function initPlayers() {
       if (players.length === 0) {
         players = [
-          {id:1, name:'Rohit Sharma', role:'BAT', basePrice:200, photo:'https://via.placeholder.com/400x500/ff6b35/ffffff?text=Rohit', sold:false},
-          {id:2, name:'Jasprit Bumrah', role:'BOWL', basePrice:250, photo:'https://via.placeholder.com/400x500/4caf50/ffffff?text=Bumrah', sold:false},
-          {id:3, name:'Virat Kohli', role:'BAT', basePrice:180, photo:'https://via.placeholder.com/400x500/2196f3/ffffff?text=Virat', sold:false},
-          {id:4, name:'KL Rahul', role:'WK-BAT', basePrice:150, photo:'https://via.placeholder.com/400x500/9c27b0/ffffff?text=Rahul', sold:false},
-          {id:5, name:'Hardik Pandya', role:'AR', basePrice:160, photo:'https://via.placeholder.com/400x500/ff9800/ffffff?text=Hardik', sold:false},
-          {id:6, name:'Ravindra Jadeja', role:'AR', basePrice:140, photo:'https://via.placeholder.com/400x500/00bcd4/ffffff?text=Jadeja', sold:false},
-          {id:7, name:'Shubman Gill', role:'BAT', basePrice:120, photo:'https://via.placeholder.com/400x500/8bc34a/ffffff?text=Gill', sold:false},
-          {id:8, name:'Yashasvi Jaiswal', role:'BAT', basePrice:110, photo:'https://via.placeholder.com/400x500/f44336/ffffff?text=Yashasvi', sold:false}
+          {id:1, name:'Rohit Sharma', role:'BAT', basePrice:200, finalBid:0, team:'', photo:'https://via.placeholder.com/400x500/ff6b35/ffffff?text=Rohit', sold:false},
+          {id:2, name:'Jasprit Bumrah', role:'BOWL', basePrice:250, finalBid:0, team:'', photo:'https://via.placeholder.com/400x500/4caf50/ffffff?text=Bumrah', sold:false},
+          {id:3, name:'Virat Kohli', role:'BAT', basePrice:180, finalBid:0, team:'', photo:'https://via.placeholder.com/400x500/2196f3/ffffff?text=Virat', sold:false},
+          {id:4, name:'KL Rahul', role:'WK-BAT', basePrice:150, finalBid:0, team:'', photo:'https://via.placeholder.com/400x500/9c27b0/ffffff?text=Rahul', sold:false},
+          {id:5, name:'Hardik Pandya', role:'AR', basePrice:160, finalBid:0, team:'', photo:'https://via.placeholder.com/400x500/ff9800/ffffff?text=Hardik', sold:false},
+          {id:6, name:'Ravindra Jadeja', role:'AR', basePrice:140, finalBid:0, team:'', photo:'https://via.placeholder.com/400x500/00bcd4/ffffff?text=Jadeja', sold:false},
+          {id:7, name:'Shubman Gill', role:'BAT', basePrice:120, finalBid:0, team:'', photo:'https://via.placeholder.com/400x500/8bc34a/ffffff?text=Gill', sold:false},
+          {id:8, name:'Yashasvi Jaiswal', role:'BAT', basePrice:110, finalBid:0, team:'', photo:'https://via.placeholder.com/400x500/f44336/ffffff?text=Yashasvi', sold:false}
         ];
         savePlayers();
       }
@@ -168,16 +176,12 @@
       const urlParams = new URLSearchParams(window.location.search);
       const screen = urlParams.get('screen') || 'dashboard';
       
-      // Hide all screens
       document.querySelectorAll('[id$="-screen"], #dashboard').forEach(el => el.classList.add('hidden'));
       
-      // Show correct screen
       if (screen === 'dashboard') {
         document.getElementById('dashboard').classList.remove('hidden');
       } else {
         document.getElementById(screen + '-screen').classList.remove('hidden');
-        
-        // ONLY show password modal for admin screen
         if (screen === 'admin') {
           document.getElementById('password-modal').classList.add('show');
         }
@@ -196,7 +200,6 @@
       }
     }
 
-    // AUCTIONEER: Serial number control
     function setSerial() {
       const serial = parseInt(document.getElementById('serial-input').value) - 1;
       if (serial >= 0 && serial < players.length && !players[serial].sold) {
@@ -205,7 +208,7 @@
         updateDisplay();
         updateAuctioneer();
       } else {
-        alert('Invalid serial or player sold!');
+        alert('Invalid serial or player already sold!');
       }
     }
 
@@ -224,7 +227,7 @@
     function updateDisplay() {
       currentSerial = parseInt(localStorage.getItem('currentSerial')) || -1;
       
-      if (currentSerial >= 0 && currentSerial < players.length) {
+      if (currentSerial >= 0 && currentSerial < players.length && !players[currentSerial].sold) {
         const p = players[currentSerial];
         document.getElementById('display-name').textContent = p.name;
         document.getElementById('display-photo').src = p.photo + '?t=' + Date.now();
@@ -244,27 +247,67 @@
       document.getElementById('display-serial').textContent = 'Serial #';
     }
 
-    // Admin functions
+    // NEW: Mark player SOLD with final bid & team
+    function markSold() {
+      if (currentSerial < 0 || currentSerial >= players.length) {
+        alert('No player selected!');
+        return;
+      }
+      
+      const team = document.getElementById('sold-team').value;
+      const finalBid = parseInt(document.getElementById('final-bid').value) || 0;
+      
+      if (!team) {
+        alert('Enter team name!');
+        return;
+      }
+      
+      players[currentSerial].sold = true;
+      players[currentSerial].team = team;
+      players[currentSerial].finalBid = finalBid;
+      savePlayers();
+      
+      // Clear form
+      document.getElementById('sold-team').value = '';
+      document.getElementById('final-bid').value = '';
+      
+      loadPlayersTable();
+      alert(`✅ ${players[currentSerial].name} SOLD to ${team} for ₹${finalBid}L!`);
+      
+      // Move to next unsold player
+      let nextIdx = (currentSerial + 1) % players.length;
+      while (nextIdx !== currentSerial && players[nextIdx]?.sold) {
+        nextIdx = (nextIdx + 1) % players.length;
+      }
+      currentSerial = nextIdx;
+      localStorage.setItem('currentSerial', currentSerial);
+      updateDisplay();
+      updateAuctioneer();
+    }
+
     function savePlayer() {
       const data = {
         name: document.getElementById('name').value,
         role: document.getElementById('role').value,
         basePrice: parseInt(document.getElementById('base-price').value) || 0,
-        photo: document.getElementById('photo-url').value || 'https://via.placeholder.com/400x500/cccccc/000000?text=No+Photo'
+        team: document.getElementById('team').value,
+        photo: document.getElementById('photo-url').value || 'https://via.placeholder.com/400x500/cccccc/000000?text=No+Photo',
+        finalBid: 0,
+        sold: false
       };
       
       if (!data.name) return alert('Name required!');
       
-      const newPlayer = { id: players.length + 1, sold: false, ...data };
+      const newPlayer = { id: players.length + 1, ...data };
       players.push(newPlayer);
       savePlayers();
       loadPlayersTable();
       alert('✅ Player Added!');
       
-      // Clear form
       document.getElementById('name').value = '';
       document.getElementById('role').value = '';
       document.getElementById('base-price').value = '';
+      document.getElementById('team').value = '';
       document.getElementById('photo-url').value = '';
     }
 
@@ -275,25 +318,29 @@
       tbody.innerHTML = '';
       players.forEach((p, i) => {
         const row = tbody.insertRow();
+        row.className = p.sold ? 'sold-row' : '';
         row.innerHTML = `
           <td>${p.id}</td>
           <td>${p.name}</td>
           <td>${p.role}</td>
-          <td>₹${p.basePrice}</td>
+          <td>₹${p.basePrice}L</td>
+          <td>${p.finalBid ? '₹' + p.finalBid + 'L' : '-'}</td>
+          <td>${p.team ? `<span class="team-select">${p.team}</span>` : '-'}</td>
           <td><img src="${p.photo}" onerror="this.src='https://via.placeholder.com/60x70/ccc/000?text=?';"></td>
-          <td style="color:${p.sold ? '#4caf50' : '#ff6b35'}">${p.sold ? '✅ YES' : '⏳ NO'}</td>
+          <td style="font-weight: bold;">${p.sold ? '✅ SOLD' : '⏳ UNSOLD'}</td>
+          <td>${!p.sold ? `<button class="sold-btn" onclick="markSoldFromRow(${i})" style="padding: 5px 10px; font-size: 12px;">Sell Now</button>` : 'Sold'}</td>
         `;
-        row.style.cursor = 'pointer';
-        row.onclick = () => {
-          document.getElementById('name').value = p.name;
-          document.getElementById('role').value = p.role;
-          document.getElementById('base-price').value = p.basePrice;
-          document.getElementById('photo-url').value = p.photo;
-        };
       });
     }
 
-    // Enter key support for auctioneer
+    // Sell from table row
+    function markSoldFromRow(index) {
+      currentSerial = index;
+      localStorage.setItem('currentSerial', currentSerial);
+      document.getElementById('sold-team').focus();
+      alert(`Select Serial ${index + 1} & mark SOLD from top controls`);
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       const serialInput = document.getElementById('serial-input');
       if (serialInput) {
@@ -303,42 +350,14 @@
       }
     });
 
-    // Auto-sync every 2 seconds
-    setInterval(updateDisplay, 2000);
+    setInterval(() => {
+      updateDisplay();
+      if (document.getElementById('auctioneer-screen') && !document.getElementById('auctioneer-screen').classList.contains('hidden')) {
+        updateAuctioneer();
+      }
+    }, 500);
     
-    // Initialize
     init();
-  </script>
-  <script>
-  const ADMIN_PASS = 'admin123';
-  let players = JSON.parse(localStorage.getItem('players')) || [];
-  let currentSerial = parseInt(localStorage.getItem('currentSerial')) || -1;
-
-  // ... [keep all existing functions exactly same until the end] ...
-
-  // ENHANCED: Instant sync + polling
-  function syncAllScreens() {
-    updateDisplay();
-    if (document.getElementById('auctioneer-screen') && !document.getElementById('auctioneer-screen').classList.contains('hidden')) {
-      updateAuctioneer();
-    }
-  }
-
-  // Enter key support for auctioneer
-  document.addEventListener('DOMContentLoaded', () => {
-    const serialInput = document.getElementById('serial-input');
-    if (serialInput) {
-      serialInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') setSerial();
-      });
-    }
-  });
-
-  // ULTRA-FAST SYNC: Every 500ms
-  setInterval(syncAllScreens, 500);
-  
-  // Initialize
-  init();
   </script>
 </body>
 </html>
