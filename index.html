@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🏏 Cricket Auction Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+    body { background: linear-gradient(135deg, #0a2540, #1a3c5e); color: white; min-height: 100vh; }
+    .dashboard { max-width: 800px; margin: 0 auto; padding: 40px 20px; text-align: center; }
+    h1 { color: #ff6b35; font-size: 2.5em; margin-bottom: 10px; }
+    .subtitle { font-size: 1.2em; margin-bottom: 40px; opacity: 0.9; }
+    .screen-links { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin: 40px 0; }
+    .screen-link { 
+      flex: 1; min-width: 250px; padding: 20px; background: #ff6b35; 
+      text-decoration: none; color: white; border-radius: 12px; 
+      font-size: 1.3em; font-weight: bold; box-shadow: 0 8px 20px rgba(255,107,53,0.4);
+      transition: all 0.3s; 
+    }
+    .screen-link:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(255,107,53,0.6); }
+    .screen-link.admin { background: #4caf50; }
+    .screen-link.display { background: #2196f3; font-size: 1.5em; }
+    .instructions { background: rgba(255,255,255,0.1); padding: 30px; border-radius: 12px; margin: 20px 0; }
+    .hidden { display: none !important; }
+    input, button { padding: 12px; margin: 5px; border: none; border-radius: 8px; font-size: 16px; }
+    button { background: #ff6b35; color: white; cursor: pointer; }
+    button:hover { background: #e55a2b; }
+    button.sold { background: #4caf50; }
+    button.sold:hover { background: #45a049; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #333; }
+    th { background: #1a3c5e; }
+    td img { width: 50px; height: 60px; object-fit: cover; border-radius: 4px; }
+    .player-card { text-align: center; font-size: 24px; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #000; }
+    .player-card img { width: 300px; height: 400px; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+    .player-info { margin: 20px 0; }
+    .current-player { background: #ff6b35; padding: 30px; border-radius: 12px; margin: 20px; text-align: center; }
+    .current-player img { width: 200px; height: 260px; display: block; margin: 0 auto 20px; }
+    .admin-panel, .auctioneer-panel { max-width: 900px; margin: 20px auto; padding: 20px; }
+    .form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+    .form-row input { flex: 1; min-width: 150px; }
+    #password-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    #password-modal.hidden { display: none; }
+    footer { margin-top: 40px; opacity: 0.7; font-size: 14px; }
+    .back-link { display: inline-block; margin: 20px 0; }
+  </style>
+</head>
+<body>
+  <!-- Dashboard -->
+  <div id="dashboard" class="dashboard">
+    <h1>🏏 Cricket Auction App</h1>
+    <p class="subtitle">PMP Winter League | Ready for your tournament!</p>
+    
+    <div class="screen-links">
+      <a href="?screen=auctioneer" class="screen-link" target="_blank">💻 AUCTIONEER<br>Laptop Control</a>
+      <a href="?screen=admin" class="screen-link admin" target="_blank">🔐 ADMIN PANEL<br>Edit Players</a>
+      <a href="?screen=display" class="screen-link display" target="_blank">📺 DISPLAY SCREEN<br>TV/Projector</a>
+    </div>
+    
+    <div class="instructions">
+      <h3>🚀 How to Use</h3>
+      <ul style="text-align: left; max-width: 600px; margin: 0 auto;">
+        <li>📱 <strong>Auctioneer:</strong> Laptop → Control bids/next</li>
+        <li>📱 <strong>Admin:</strong> Phone → Password: <code>admin123</code></li>
+        <li>📺 <strong>Display:</strong> TV → Fullscreen (F11)</li>
+      </ul>
+      <p><strong>Demo:</strong> 8 IPL stars loaded! Serial 1 = Rohit Sharma</p>
+    </div>
+    <footer>Deployed on GitHub Pages | Pune Turf Cricket Auctions</footer>
+  </div>
+
+  <!-- Password Modal -->
+  <div id="password-modal">
+    <div style="background: #1a3c5e; padding: 40px; border-radius: 12px; text-align: center; max-width: 400px;">
+      <h2>🔐 Admin Password</h2>
+      <input type="password" id="admin-pass" placeholder="admin123" style="width: 250px;">
+      <br><br><button onclick="checkAdmin()">Enter Admin →</button>
+    </div>
+  </div>
+
+  <!-- Admin Screen -->
+  <div id="admin-screen" class="hidden admin-panel">
+    <h1>🔐 Player Database Admin</h1>
+    <a href="./" class="screen-link back-link">← Dashboard</a>
+    <div class="form-row">
+      <input id="serial" type="number" min="1" placeholder="Serial (1-8)" value="1">
+      <button onclick="loadPlayer()">Load Player</button>
+      <button onclick="nextPlayer()">Next Unsold</button>
+      <button onclick="clearCurrent()">Clear Current</button>
+    </div>
+    <h3>Add New Player</h3>
+    <div class="form-row">
+      <input id="name" placeholder="Player Name">
+      <input id="role" placeholder="BAT/BOWL/AR/WK">
+      <input id="base-price" type="number" placeholder="Base Price ₹">
+    </div>
+    <div class="form-row">
+      <input id="photo-url" placeholder="Photo URL (Unsplash)">
+      <button onclick="savePlayer()">💾 Save Player</button>
+      <button onclick="deletePlayer()" style="background:#f44336;">🗑️ Delete</button>
+    </div>
+    <h3>All Players</h3>
+    <table id="player-table">
+      <thead><tr><th>ID</th><th>Name</th><th>Role</th><th>Base ₹</th><th>Photo</th><th>Sold</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- Auctioneer Screen -->
+  <div id="auctioneer-screen" class="hidden auctioneer-panel">
+    <h1>💻 Auctioneer Control Panel</h1>
+    <a href="./" class="screen-link back-link">← Dashboard</a>
+    <div id="current-display" class="current-player" style="display:none;">
+      <h2 id="curr-name" style="color:#000;"></h2>
+      <img id="curr-photo" alt="Player">
+      <p id="curr-role" style="font-size:20px; color:#000;"></p>
+      <p id="curr-base" style="font-size:24px; color:#000; font-weight:bold;"></p>
+      <div style="margin:20px 0;">
+        <button onclick="nextPlayer()" style="font-size:20px; padding:15px 30px;">⏭️ Next Player</button>
+        <button onclick="soldPlayer()" class="sold" style="font-size:20px; padding:15px 30px;">✅ Mark SOLD</button>
+      </div>
+    </div>
+    <p style="text-align:center; font-size:18px;">
+      Current Serial: <span id="curr-serial">0</span>
+    </p>
+  </div>
+
+  <!-- Display Screen -->
+  <div id="display-screen" class="hidden player-card">
+    <h1 id="display-name" style="color:#ff6b35; font-size:3em;"></h1>
+    <img id="display-photo" alt="Player Photo">
+    <div class="player-info">
+      <p id="display-role" style="font-size:2.5em; color:#fff;"></p>
+      <p id="display-base" style="font-size:3.5em; color:#ff6b35; font-weight:bold;">Base Price: ₹0</p>
+    </div>
+  </div>
+
+  <script>
+    const ADMIN_PASS = 'admin123';
+    let players = JSON.parse(localStorage.getItem('players')) || [];
+    let currentSerial = parseInt(localStorage.getItem('currentSerial')) || 0;
+    let isAdmin = false;
+
+    function init() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const screen = urlParams.get('screen') || 'dashboard';
+      document.querySelectorAll('[id$="-screen"], #dashboard').forEach(el => el.classList.add('hidden'));
+      const targetScreen = screen === 'dashboard' ? 'dashboard' : screen + '-screen';
+      document.getElementById(targetScreen)?.classList.remove('hidden');
+      
+      if (screen === 'admin') {
+        showPasswordModal();
+      } else {
+        loadPlayers();
+        if (screen !== 'dashboard') updateCurrent();
+      }
+    }
+
+    function savePlayers() {
+      localStorage.setItem('players', JSON.stringify(players));
+    }
+
+    function loadPlayers() {
+      if (players.length === 0) {
+        players = [
+          {id:1, name:'Rohit Sharma', role:'BAT', basePrice:200, photo:'https://images.unsplash.com/photo-1596964355499-78aa9f2a9f69?w=300&h=400&fit=crop&crop=face', sold:false},
+          {id:2, name:'Jasprit Bumrah', role:'BOWL', basePrice:250, photo:'https://images.unsplash.com/photo-1678636847405-7f1f3d4e3d4e?w=300&h=400&fit=crop&crop=face', sold:false},
+          {id:3, name:'Virat Kohli', role:'BAT', basePrice:180, photo:'https://images.unsplash.com/photo-1600392458896-629917170b67?w=300&h=400&fit=crop&crop=face', sold:false},
+          {id:4, name:'KL Rahul', role:'WK-BAT', basePrice:150, photo:'https://images.unsplash.com/photo-1611003229189-804ab0bd1a0f?w=300&h=400&fit=crop&crop=face', sold:false},
+          {id:5, name:'Hardik Pandya', role:'AR', basePrice:160, photo:'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=400&fit=crop&crop=face', sold:false},
+          {id:6, name:'Ravindra Jadeja', role:'AR', basePrice:140, photo:'https://images.unsplash.com/photo-1624494780664-5549ebcc7f17?w=300&h=400&fit=crop&crop=face', sold:false},
+          {id:7, name:'Shubman Gill', role:'BAT', basePrice:120, photo:'https://images.unsplash.com/photo-1538312564584-9d86e1ce3e93?w=300&h=400&fit=crop&crop=face', sold:false},
+          {id:8, name:'Yashasvi Jaiswal', role:'BAT', basePrice:110, photo:'https://images.unsplash.com/photo-1611251952518-79b95352c4ba?w=300&h=400&fit=crop&crop=face', sold:false}
+        ];
+        savePlayers();
+      }
+      loadPlayersTable();
+    }
+
+    function showPasswordModal() {
+      document.getElementById('password-modal').classList.remove('hidden');
+    }
+
+    function checkAdmin() {
+      if (document.getElementById('admin-pass').value === ADMIN_PASS) {
+        document.getElementById('password-modal').classList.add('hidden');
+        document.getElementById('admin-screen').classList.remove('hidden');
+        loadPlayersTable();
+      } else {
+        alert('❌ Wrong password!');
+      }
+    }
+
+    function loadPlayer() {
+      const serial = parseInt(document.getElementById('serial').value) - 1;
+      if (serial >= 0 && serial < players.length) {
+        currentSerial = serial;
+        localStorage.setItem('currentSerial', currentSerial);
+        updateCurrent();
+        document.getElementById('name').value = players[serial].name;
+        document.getElementById('role').value = players[serial].role;
+        document.getElementById('base-price').value = players[serial].basePrice;
+        document.getElementById('photo-url').value = players[serial].photo;
+      }
+    }
+
+    function nextPlayer() {
+      let nextIdx = (currentSerial + 1) % players.length;
+      let attempts = 0;
+      while (players[nextIdx]?.sold && attempts < players.length) {
+        nextIdx = (nextIdx + 1) % players.length;
+        attempts++;
+      }
+      currentSerial = nextIdx;
+      localStorage.setItem('currentSerial', currentSerial);
+      loadPlayer();
+    }
+
+    function clearCurrent() {
+      currentSerial = -1;
+      localStorage.setItem('currentSerial', currentSerial);
+      updateCurrent();
+      document.getElementById('serial').value = '';
+    }
+
+    function updateCurrent() {
+      document.getElementById('curr-serial').textContent = currentSerial + 1;
+      if (currentSerial >= 0 && currentSerial < players.length) {
+        const p = players[currentSerial];
+        document.getElementById('curr-name').textContent = p.name;
+        document.getElementById('curr-photo').src = p.photo;
+        document.getElementById('curr-role').textContent = p.role;
+        document.getElementById('curr-base').textContent = `Base: ₹${p.basePrice}`;
+        document.getElementById('current-display').style.display = 'block';
+        updateDisplay();
+      } else {
+        document.getElementById('current-display').style.display = 'none';
+        clearDisplay();
+      }
+    }
+
+    function updateDisplay() {
+      if (currentSerial >= 0 && currentSerial < players.length) {
+        const p = players[currentSerial];
+        document.getElementById('display-name').textContent = p.name;
+        document.getElementById('display-photo').src = p.photo;
+        document.getElementById('display-role').textContent = p.role;
+        document.getElementById('display-base').textContent = `Base Price: ₹${p.basePrice}`;
+      }
+    }
+
+    function clearDisplay() {
+      ['display-name', 'display-role', 'display-base'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = '';
+      });
+      const img = document.getElementById('display-photo');
+      if (img) img.src = '';
+    }
+
+    function soldPlayer() {
+      if (currentSerial >= 0 && currentSerial < players.length) {
+        players[currentSerial].sold = true;
+        savePlayers();
+        loadPlayersTable();
+        nextPlayer();
+      }
+    }
+
+    function getFormData() {
+      return {
+        name: document.getElementById('name').value,
+        role: document.getElementById('role').value,
+        basePrice: parseInt(document.getElementById('base-price').value) || 0,
+        photo: document.getElementById('photo-url').value
+      };
+    }
+
+    function savePlayer() {
+      const data = getFormData();
+      if (!data.name) return alert('Name required!');
+      
+      if (currentSerial >= 0 && currentSerial < players.length) {
+        players[currentSerial] = { ...players[currentSerial], ...data };
+      } else {
+        const newPlayer = { id: players.length + 1, sold: false, ...data };
+        players.push(newPlayer);
+        currentSerial = players.length - 1;
+      }
+      savePlayers();
+      loadPlayersTable();
+      updateCurrent();
+      document.getElementById('serial').value = currentSerial + 1;
+    }
+
+    function deletePlayer() {
+      if (currentSerial >= 0 && currentSerial < players.length && confirm('Delete this player?')) {
+        players.splice(currentSerial, 1);
+        players.forEach((p, i) => p.id = i + 1);
+        savePlayers();
+        loadPlayersTable();
+        clearCurrent();
+      }
+    }
+
+    function loadPlayersTable() {
+      const tbody = document.querySelector('#player-table tbody');
+      tbody.innerHTML = '';
+      players.forEach((p, i) => {
+        const row = tbody.insertRow();
+        row.innerHTML = `
+          <td>${p.id}</td>
+          <td>${p.name}</td>
+          <td>${p.role}</td>
+          <td>₹${p.basePrice}</td>
+          <td><img src="${p.photo}" onerror="this.src='https://via.placeholder.com/50x60/ccc?text=?';"></td>
+          <td style="color:${p.sold ? '#4caf50' : '#ff6b35'}">${p.sold ? '✅ YES' : '⏳ NO'}</td>
+        `;
+        row.style.cursor = 'pointer';
+        row.onclick = () => {
+          currentSerial = i;
+          document.getElementById('serial').value = i + 1;
+          loadPlayer();
+        };
+      });
+    }
+
+    // Initialize app
+    init();
+    
+    // Auto-sync display screen
+    setInterval(() => {
+      if (!document.getElementById('display-screen').classList.contains('hidden')) {
+        updateDisplay();
+      }
+    }, 1000);
+  </script>
+</body>
+</html>
